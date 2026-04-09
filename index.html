@@ -504,7 +504,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, doc, collection,
-  addDoc, getDocs, query, where, orderBy,
+  addDoc, getDocs, query, where,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -695,9 +695,9 @@ async function logEvent(uid, type) {
 // ── Load stats & trends ──
 async function loadStats(uid) {
   if (!configured) return;
-  const q = query(collection(db, 'events'), where('uid','==',uid), orderBy('timestamp','asc'));
+  const q = query(collection(db, 'events'), where('uid','==',uid));
   const snap = await getDocs(q);
-  const events = snap.docs.map(d => d.data());
+  const events = snap.docs.map(d => d.data()).sort((a,b) => a.timestamp.seconds - b.timestamp.seconds);
 
   // Build weekly buckets (last 6 weeks)
   const now = new Date();
