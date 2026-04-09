@@ -598,58 +598,53 @@ function friendlyError(code) {
 }
 
 // ── Hold Button ──
-const holdBtn    = document.getElementById('hold-btn');
-const circle     = document.getElementById('progress-circle');
-const HOLD_MS    = 3000;
-const CIRCUMFERENCE = 2 * Math.PI * 70; // r=70
-circle.style.strokeDasharray = CIRCUMFERENCE;
-circle.style.strokeDashoffset = CIRCUMFERENCE;
+const holdBtn = document.getElementById('hold-btn');
+const circle  = document.getElementById('progress-circle');
+const HOLD_MS = 3000;
+const CIRCUMFERENCE = 2 * Math.PI * 70;
+circle.setAttribute('stroke-dasharray', CIRCUMFERENCE);
+circle.setAttribute('stroke-dashoffset', CIRCUMFERENCE);
 
-let holdTimer = null, holdStart = null, holding = false;
+let holdInterval = null;
+let holdStart    = null;
+let isHolding    = false;
+let completed    = false;
 
-function startHold(e) {
-  if (e.cancelable) e.preventDefault();
-  if (holding) return;
-  holding = true;
+function startHold() {
+  if (isHolding || completed) return;
+  isHolding = true;
   holdStart = Date.now();
   holdBtn.classList.add('holding');
-  holdTimer = setInterval(() => {
-    const elapsed = Date.now() - holdStart;
+  holdInterval = setInterval(() => {
+    const elapsed  = Date.now() - holdStart;
     const progress = Math.min(elapsed / HOLD_MS, 1);
-    const offset = CIRCUMFERENCE * (1 - progress);
-    circle.style.strokeDashoffset = offset;
+    const offset   = CIRCUMFERENCE * (1 - progress);
+    circle.setAttribute('stroke-dashoffset', offset);
     if (progress >= 1) {
-      clearInterval(holdTimer);
+      clearInterval(holdInterval);
+      holdInterval = null;
+      isHolding = false;
+      completed = true;
       onHoldComplete();
     }
   }, 30);
 }
 
-function endHold(e) {
-  if (!holding) return;
-  holding = false;
+function cancelHold() {
+  if (!isHolding) return;
+  isHolding = false;
+  clearInterval(holdInterval);
+  holdInterval = null;
   holdBtn.classList.remove('holding');
-  clearInterval(holdTimer);
-  const elapsed = Date.now() - holdStart;
-  if (elapsed < HOLD_MS) {
-    // reset ring
-    circle.style.strokeDashoffset = CIRCUMFERENCE;
-  }
+  circle.setAttribute('stroke-dashoffset', CIRCUMFERENCE);
 }
 
-holdBtn.addEventListener('mousedown', startHold);
-holdBtn.addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  startHold(e);
-}, { passive: false });
-
-document.addEventListener('mouseup', endHold);
-document.addEventListener('touchend', (e) => {
-  e.preventDefault();
-  endHold(e);
-}, { passive: false });
-document.addEventListener('touchcancel', endHold);
+holdBtn.addEventListener('mousedown',  startHold);
+holdBtn.addEventListener('mouseup',    cancelHold);
+holdBtn.addEventListener('mouseleave', cancelHold);
+holdBtn.addEventListener('touchstart', function(e) { e.preventDefault(); startHold(); }, { passive: false });
+holdBtn.addEventListener('touchend',   function(e) { e.preventDefault(); cancelHold(); }, { passive: false });
+holdBtn.addEventListener('touchcancel',function(e) { cancelHold(); }, { passive: false });
 
 async function onHoldComplete() {
   circle.style.strokeDashoffset = CIRCUMFERENCE;
