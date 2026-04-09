@@ -608,7 +608,8 @@ circle.style.strokeDashoffset = CIRCUMFERENCE;
 let holdTimer = null, holdStart = null, holding = false;
 
 function startHold(e) {
-  e.preventDefault();
+  if (e.cancelable) e.preventDefault();
+  if (holding) return;
   holding = true;
   holdStart = Date.now();
   holdBtn.classList.add('holding');
@@ -637,9 +638,18 @@ function endHold(e) {
 }
 
 holdBtn.addEventListener('mousedown', startHold);
-holdBtn.addEventListener('touchstart', startHold, { passive: false });
+holdBtn.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  startHold(e);
+}, { passive: false });
+
 document.addEventListener('mouseup', endHold);
-document.addEventListener('touchend', endHold);
+document.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  endHold(e);
+}, { passive: false });
+document.addEventListener('touchcancel', endHold);
 
 async function onHoldComplete() {
   circle.style.strokeDashoffset = CIRCUMFERENCE;
