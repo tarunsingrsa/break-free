@@ -209,6 +209,7 @@
     position: absolute; inset: 0;
     width: 100%; height: 100%;
     transform: rotate(-90deg);
+    pointer-events: none;
   }
   svg.progress-ring circle {
     fill: none;
@@ -608,10 +609,9 @@ circle.setAttribute('stroke-dashoffset', CIRCUMFERENCE);
 let holdInterval = null;
 let holdStart    = null;
 let isHolding    = false;
-let completed    = false;
 
 function startHold() {
-  if (isHolding || completed) return;
+  if (isHolding) return;
   isHolding = true;
   holdStart = Date.now();
   holdBtn.classList.add('holding');
@@ -624,7 +624,6 @@ function startHold() {
       clearInterval(holdInterval);
       holdInterval = null;
       isHolding = false;
-      completed = true;
       onHoldComplete();
     }
   }, 30);
@@ -647,7 +646,7 @@ holdBtn.addEventListener('touchend',   function(e) { e.preventDefault(); cancelH
 holdBtn.addEventListener('touchcancel',function(e) { cancelHold(); }, { passive: false });
 
 async function onHoldComplete() {
-  circle.style.strokeDashoffset = CIRCUMFERENCE;
+  circle.setAttribute('stroke-dashoffset', CIRCUMFERENCE);
   holdBtn.classList.remove('holding');
   // Show strategies
   const panel = document.getElementById('strategies-panel');
