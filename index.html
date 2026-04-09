@@ -173,6 +173,34 @@
   .streak-unit { font-size: 0.8rem; color: var(--text-dim); }
   .streak-divider { width: 1px; height: 60px; background: var(--border); }
 
+  /* ── Day Streak Banner ── */
+  .streak-banner {
+    background: linear-gradient(135deg, #1a2e1a, #0f1f10);
+    border: 1px solid #4ade8033;
+    border-radius: 16px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 0 30px #4ade8011;
+  }
+  .streak-fire { font-size: 2.5rem; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+  .streak-days {
+    font-family: 'Fraunces', serif;
+    font-size: 3.5rem;
+    color: var(--accent);
+    font-weight: 300;
+    line-height: 1;
+  }
+  .streak-days-label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+    margin-top: 0.2rem;
+  }
+
   /* ── Hold Button ── */
   .hold-section {
     display: flex;
@@ -351,6 +379,71 @@
   }
   .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
 
+  /* ── Bottom Nav ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.6rem 0 0.8rem;
+    z-index: 50;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0.2rem; background: none; border: none;
+    color: var(--text-dim); cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.65rem; letter-spacing: 0.05em;
+    padding: 0.3rem 1.5rem;
+    border-radius: 8px;
+    transition: color 0.2s;
+  }
+  .nav-item.active { color: var(--accent); }
+  .nav-item .nav-icon { font-size: 1.3rem; }
+
+  /* ── Why Page ── */
+  #why-page {
+    display: none; width: 100%; max-width: 480px;
+    padding: 1.5rem 1rem 6rem;
+    position: relative; z-index: 1;
+  }
+  .why-hero {
+    background: linear-gradient(135deg, #1a1a0f, #0f1a0a);
+    border: 1px solid #facc1533;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  .why-hero-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .why-hero-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.6rem; font-weight: 300;
+    color: var(--text); margin-bottom: 0.5rem;
+  }
+  .why-hero-sub { font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; }
+
+  .why-category { margin-bottom: 1.5rem; }
+  .why-category-title {
+    font-size: 0.65rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 0.75rem; padding-left: 0.25rem;
+  }
+  .why-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 0.6rem;
+    display: flex; gap: 1rem; align-items: flex-start;
+  }
+  .why-card-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+  .why-card-title { font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 0.25rem; }
+  .why-card-body { font-size: 0.78rem; color: var(--text-dim); line-height: 1.55; }
+  .why-source { font-size: 0.68rem; color: #4ade8066; margin-top: 0.3rem; font-style: italic; }
+
   .toast {
     position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
     background: var(--surface2); border: 1px solid var(--border);
@@ -420,9 +513,18 @@
   </header>
 
   <!-- Streak -->
+  <!-- Day Streak Banner -->
+  <div class="streak-banner" id="streak-banner">
+    <div class="streak-fire">🔥</div>
+    <div>
+      <div class="streak-days" id="day-streak">0</div>
+      <div class="streak-days-label">day streak — keep going</div>
+    </div>
+  </div>
+
   <div class="streak-card">
     <div>
-      <div class="streak-label">Times resisted</div>
+      <div class="streak-label">Resisted</div>
       <div class="streak-val" id="total-resisted">0</div>
       <div class="streak-unit">this week</div>
     </div>
@@ -434,9 +536,9 @@
     </div>
     <div class="streak-divider"></div>
     <div>
-      <div class="streak-label">Best week</div>
-      <div class="streak-val" id="best-week">0</div>
-      <div class="streak-unit">resisted</div>
+      <div class="streak-label">Best streak</div>
+      <div class="streak-val" id="best-streak">0</div>
+      <div class="streak-unit">days</div>
     </div>
   </div>
 
@@ -482,6 +584,126 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- ── Bottom Nav ── -->
+<nav class="bottom-nav" id="bottom-nav" style="display:none">
+  <button class="nav-item active" id="nav-home" onclick="showPage('home')">
+    <span class="nav-icon">🏠</span>
+    <span>Home</span>
+  </button>
+  <button class="nav-item" id="nav-why" onclick="showPage('why')">
+    <span class="nav-icon">📖</span>
+    <span>Why Quit</span>
+  </button>
+</nav>
+
+<!-- ── Why Page ── -->
+<div id="why-page">
+  <div class="why-hero">
+    <div class="why-hero-icon">🔬</div>
+    <div class="why-hero-title">The science is clear</div>
+    <div class="why-hero-sub">Porn addiction rewires your brain the same way drugs do. Here is what the research actually shows.</div>
+  </div>
+
+  <div class="why-category">
+    <div class="why-category-title">🧠 Your Brain</div>
+    <div class="why-card">
+      <div class="why-card-icon">⚡</div>
+      <div>
+        <div class="why-card-title">It rewires your dopamine system</div>
+        <div class="why-card-body">Pornography floods the brain with dopamine — the same chemical triggered by cocaine. Over time, your brain downregulates dopamine receptors, meaning normal life feels flat, boring, and unrewarding.</div>
+        <div class="why-source">Source: Kühn & Gallinat, JAMA Psychiatry, 2014</div>
+      </div>
+    </div>
+    <div class="why-card">
+      <div class="why-card-icon">🌫️</div>
+      <div>
+        <div class="why-card-title">It shrinks your prefrontal cortex</div>
+        <div class="why-card-body">The prefrontal cortex controls willpower, decision-making, and impulse control. Studies show heavy porn users have measurably less grey matter in this region — meaning less ability to say no.</div>
+        <div class="why-source">Source: Cambridge University Brain Imaging Study, 2014</div>
+      </div>
+    </div>
+    <div class="why-card">
+      <div class="why-card-icon">📉</div>
+      <div>
+        <div class="why-card-title">It causes brain fog and low motivation</div>
+        <div class="why-card-body">Chronic porn use depletes dopamine reserves. The result is persistent brain fog, difficulty concentrating, low drive, and an inability to feel pleasure from everyday achievements.</div>
+        <div class="why-source">Source: Wilson, Your Brain on Porn, 2014</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="why-category">
+    <div class="why-category-title">💪 Your Body & Performance</div>
+    <div class="why-card">
+      <div class="why-card-icon">😴</div>
+      <div>
+        <div class="why-card-title">It destroys your energy levels</div>
+        <div class="why-card-body">The hormonal crash after orgasm — especially combined with the shame cycle — triggers cortisol spikes and testosterone drops that leave you fatigued, anxious, and demotivated for hours or days.</div>
+      </div>
+    </div>
+    <div class="why-card">
+      <div class="why-card-icon">🏋️</div>
+      <div>
+        <div class="why-card-title">It lowers testosterone over time</div>
+        <div class="why-card-body">Compulsive use disrupts the hypothalamic-pituitary axis — the hormone control system. Many men report significantly higher energy, confidence, and gym performance after 30+ days of abstinence.</div>
+      </div>
+    </div>
+    <div class="why-card">
+      <div class="why-card-icon">😰</div>
+      <div>
+        <div class="why-card-title">It increases anxiety and depression</div>
+        <div class="why-card-body">The shame-use-shame cycle is self-reinforcing. Each relapse deepens feelings of worthlessness, which increases the urge to escape through use. Breaking the cycle is the only exit.</div>
+        <div class="why-source">Source: Grubbs et al., Psychology of Addictive Behaviors, 2015</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="why-category">
+    <div class="why-category-title">❤️ Your Relationships</div>
+    <div class="why-card">
+      <div class="why-card-icon">💔</div>
+      <div>
+        <div class="why-card-title">It distorts how you see real people</div>
+        <div class="why-card-body">Porn trains your brain to see people as objects and to expect unrealistic physical and sexual standards. This directly impairs empathy, intimacy, and genuine connection with real partners.</div>
+        <div class="why-source">Source: Sun et al., Journal of Communication, 2016</div>
+      </div>
+    </div>
+    <div class="why-card">
+      <div class="why-card-icon">🤝</div>
+      <div>
+        <div class="why-card-title">It erodes real intimacy</div>
+        <div class="why-card-body">Men who use porn regularly report lower satisfaction in real relationships and reduced emotional intimacy with partners. The brain becomes wired for novelty and screen-based stimulation over human connection.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="why-category">
+    <div class="why-category-title">✨ What Happens When You Quit</div>
+    <div class="why-card">
+      <div class="why-card-icon">🌱</div>
+      <div>
+        <div class="why-card-title">Week 1–2: The fog starts lifting</div>
+        <div class="why-card-body">Most people report improved sleep, slightly more energy, and a subtle return of motivation. The brain begins upregulating dopamine receptors — normal life starts feeling rewarding again.</div>
+      </div>
+    </div>
+    <div class="why-card">
+      <div class="why-card-icon">🔥</div>
+      <div>
+        <div class="why-card-title">Week 3–4: Confidence and drive return</div>
+        <div class="why-card-body">Social anxiety decreases. Eye contact becomes easier. Many report feeling more present, more assertive, and more interested in pursuing real goals. Testosterone levels begin to stabilise.</div>
+      </div>
+    </div>
+    <div class="why-card">
+      <div class="why-card-icon">🏆</div>
+      <div>
+        <div class="why-card-title">90 days: Significant brain rewiring</div>
+        <div class="why-card-body">At 90 days, neuroplasticity research suggests substantial recovery of prefrontal function. Former users report dramatically improved focus, emotional regulation, relationship quality, and self-respect.</div>
+        <div class="why-source">Source: NoFap community data + Cambridge University research</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════ SCRIPTS ══════════ -->
 <script type="module">
 // ─────────────────────────────────────────────
@@ -522,18 +744,46 @@ if (configured) {
 
 // ── Coping strategies pool ──
 const STRATEGIES = [
-  { icon: "🌬️", title: "Box Breathing", body: "Inhale for 4 counts, hold for 4, exhale for 4, hold for 4. Repeat 4 times. This activates your parasympathetic nervous system and reduces cortisol within minutes." },
-  { icon: "🏃", title: "5-Minute Burst Exercise", body: "Do 20 jumping jacks, 10 push-ups, and 10 squats right now. Physical movement floods your brain with dopamine naturally and breaks the urge cycle." },
-  { icon: "🚿", title: "Cold Water Reset", body: "Splash cold water on your face or take a 60-second cold shower. The mammalian dive reflex immediately lowers heart rate and redirects focus." },
-  { icon: "✍️", title: "Name the Feeling", body: "Write down exactly what you're feeling right now — boredom, loneliness, stress? Studies show labeling emotions reduces their intensity by up to 50%." },
-  { icon: "🎧", title: "Music & Movement", body: "Put on an upbeat song and move your body. Music activates the same reward pathways as the addictive behavior, giving you a healthy dopamine hit." },
-  { icon: "📞", title: "Reach Out to Someone", body: "Text or call a friend right now — even just to say hi. Social connection is the single most powerful circuit-breaker for addictive urges." },
-  { icon: "🧊", title: "Hold Ice Cubes", body: "Grip an ice cube in each hand for 30–60 seconds. The intense sensation grounds you in your body and disrupts the mental pattern driving the urge." },
-  { icon: "🚶", title: "Change Your Location", body: "Stand up and walk to a different room or go outside. Your environment is a powerful trigger — physically leaving the space breaks the association." },
-  { icon: "⏱️", title: "Surf the Urge", body: "Set a 10-minute timer and just observe the urge without acting on it. Research shows urges peak and pass within 15–20 minutes if you don't feed them." },
-  { icon: "🙏", title: "Body Scan Meditation", body: "Close your eyes. Slowly move attention from your toes to your head, relaxing each part. This moves your brain from reactive mode to reflective mode." },
-  { icon: "📖", title: "Read Your 'Why'", body: "Open a note you've written about why you want to change. Reconnecting with your deeper motivation strengthens the prefrontal cortex's control over impulses." },
-  { icon: "💧", title: "Drink Water Slowly", body: "Pour a full glass of water and drink it slowly, focusing on each sip. This mindful act takes 2 minutes and interrupts the automatic urge pattern." },
+  { icon: "🌬️", title: "Box Breathing", body: "Inhale for 4 counts, hold for 4, exhale for 4, hold for 4. Repeat 4 times. Activates your parasympathetic nervous system and reduces cortisol within minutes." },
+  { icon: "😮‍💨", title: "4-7-8 Breathing", body: "Breathe in for 4 seconds, hold for 7, exhale slowly for 8 seconds. Developed by Dr. Andrew Weil — one of the fastest ways to calm your nervous system." },
+  { icon: "🫁", title: "Belly Breathing", body: "One hand on chest, one on belly. Breathe so only the belly hand rises. Do this for 2 minutes. Diaphragmatic breathing directly lowers anxiety and urge intensity." },
+  { icon: "🌊", title: "Wave Breathing", body: "Inhale slowly for 5 seconds imagining a wave rising, exhale for 5 seconds imagining it falling. Picture the urge washing away with each breath. Repeat 6 times." },
+  { icon: "🏃", title: "5-Minute Burst Exercise", body: "20 jumping jacks, 10 push-ups, 10 squats — right now. Physical movement floods your brain with natural dopamine and breaks the urge cycle completely." },
+  { icon: "🚿", title: "Cold Water Reset", body: "Splash cold water on your face or take a 60-second cold shower. The mammalian dive reflex immediately lowers heart rate and kills the urge signal." },
+  { icon: "🧊", title: "Ice Cube Grounding", body: "Hold an ice cube in each hand for 30-60 seconds. The intense sensation grounds you in your body and disrupts the mental loop driving the urge." },
+  { icon: "🤸", title: "10 Burpees Now", body: "Drop and do 10 burpees as fast as you can. The intensity forces your brain to focus entirely on the physical effort — the urge cannot survive this." },
+  { icon: "🧘", title: "Wall Sit Hold", body: "Slide your back down a wall into a squat and hold for 60 seconds. Physical discomfort redirects your entire nervous system and burns off the energy behind urges." },
+  { icon: "💪", title: "Push-Up to Failure", body: "Do push-ups until you physically cannot do another one. The exhaustion releases endorphins that naturally replace the urge with a deep sense of calm." },
+  { icon: "🤾", title: "Jump in Place 2 Minutes", body: "Jump in place as fast as you can for 2 full minutes. The cardio spike gives your brain the stimulation it is craving — but through a clean channel." },
+  { icon: "🧗", title: "Plank Hold", body: "Hold a plank for as long as possible. The mental focus required leaves absolutely zero room for urge-based thoughts. Push past where you want to stop." },
+  { icon: "⏱️", title: "Surf the Urge", body: "Set a 10-minute timer and observe the urge without acting. Research shows urges peak and pass within 15-20 minutes if you do not feed them. Just wait." },
+  { icon: "🙏", title: "Body Scan Meditation", body: "Close your eyes. Move attention slowly from toes to head, relaxing each part. Shifts your brain from reactive to reflective mode in under 3 minutes." },
+  { icon: "✍️", title: "Name the Feeling", body: "Write down what you are feeling — boredom, loneliness, stress, anxiety? Studies show labeling emotions reduces their intensity by up to 50%." },
+  { icon: "🧠", title: "5-4-3-2-1 Grounding", body: "Name 5 things you see, 4 you can touch, 3 you hear, 2 you smell, 1 you taste. This technique pulls your brain out of fantasy and into reality instantly." },
+  { icon: "🌅", title: "Visualise Your Future Self", body: "Close your eyes and picture yourself 1 year from now, free from this. See your confidence, your relationships, your self-respect. Hold that image for 2 minutes." },
+  { icon: "📖", title: "Read Your Why", body: "Open a note with your reasons for changing. Reconnecting with your deeper motivation activates the prefrontal cortex — the part of your brain that beats impulses." },
+  { icon: "🔁", title: "Thought Interruption", body: "Say STOP out loud right now. Replace the urge thought with a specific proud memory. Hold that memory for 60 seconds. You are rewriting the neural pattern." },
+  { icon: "🪞", title: "Mirror Talk", body: "Look yourself in the eyes and say out loud: I am stronger than this urge. I choose who I become. Self-affirmation has measurable neurological effects." },
+  { icon: "📿", title: "Progressive Muscle Relaxation", body: "Tense each muscle group from feet upward for 5 seconds then release. This discharges the physical tension that fuels urges and leaves you calm." },
+  { icon: "🌙", title: "Future Regret Replay", body: "Vividly imagine how you will feel in 10 minutes if you give in — the shame, the disappointment. Then imagine how you will feel if you hold out. Choose wisely." },
+  { icon: "🎧", title: "Music and Movement", body: "Put on a song you love and move your body. Music activates the same reward pathways as addictive behaviour — giving your brain a clean dopamine hit." },
+  { icon: "📞", title: "Call Someone Right Now", body: "Text or call a friend or family member right now. Social connection is the single most powerful circuit-breaker for addictive urges. Do not wait." },
+  { icon: "💧", title: "Drink Water Slowly", body: "Pour a full glass of cold water and drink it slowly, focusing on each sip. This mindful act interrupts the automatic urge pattern within 2 minutes." },
+  { icon: "📚", title: "Read for 10 Minutes", body: "Open a book or article you find interesting and read for 10 minutes. Cognitive engagement fully occupies your brain and leaves no bandwidth for urges." },
+  { icon: "🎮", title: "Play a Focus Game", body: "Open a puzzle game, chess, or anything that requires strategy. Demanding games require full attention from your brain and cut off the urge's mental oxygen." },
+  { icon: "🍳", title: "Go Make Food", body: "Go to the kitchen and make something — even toast or a smoothie. Physical activity, sensory engagement, and a change of location together break the urge chain." },
+  { icon: "🎨", title: "Draw or Doodle", body: "Grab a pen and paper and draw whatever comes to mind for 5 minutes. Creative expression activates different neural pathways and naturally dissolves tension." },
+  { icon: "🌿", title: "Step Outside Now", body: "Go outside right now — even for 3 minutes. Fresh air and natural light trigger a measurable shift in brain chemistry within 60 seconds of stepping out." },
+  { icon: "🧹", title: "Clean Something", body: "Pick one small thing to tidy right now. Physical action with visible results gives your brain the satisfaction it is seeking — through a productive channel." },
+  { icon: "📝", title: "Brain Dump Journal", body: "Set a 5-minute timer and write non-stop — whatever is in your head, no filter. Externalising your thoughts on paper reduces their emotional charge dramatically." },
+  { icon: "🛁", title: "Take a Shower", body: "Get in the shower right now — warm or cold. The sensory reset, change of environment, and physical ritual is one of the most reliable urge-breakers there is." },
+  { icon: "🤝", title: "Do Something for Someone", body: "Send a message checking in on someone you care about. Acts of kindness immediately shift your brain's reward focus outward and dissolve self-destructive urges." },
+  { icon: "🏆", title: "Look at Your Streak", body: "Look at how many clean days you have built. That number is real willpower. Ask yourself: is a few minutes of weakness worth destroying everything you have built?" },
+  { icon: "💬", title: "Post in a Recovery Community", body: "Go to r/pornfree or r/NoFap and post what you are feeling right now. Being seen by people who truly understand is one of the most powerful tools in recovery." },
+  { icon: "🎵", title: "Learn Something New", body: "Open YouTube and find a tutorial for something you want to learn. Acquiring a new skill gives you identity, purpose, and a dopamine reward that lasts far longer." },
+  { icon: "🌟", title: "Write 3 Things You are Proud Of", body: "Right now, write down 3 things about yourself you are genuinely proud of. This activates self-compassion neural circuits and makes self-destructive behaviour feel incongruent with who you are." },
+  { icon: "🧩", title: "Solve a Puzzle", body: "Open a Sudoku, crossword, or logic puzzle. The focused problem-solving state is neurologically incompatible with craving states — they cannot coexist in your brain." },
+  { icon: "📸", title: "Go Take 10 Photos", body: "Grab your phone and go find 10 interesting things to photograph — patterns, light, anything. This creative attention exercise pulls you fully into the present moment." },
 ];
 
 function getRandomStrategies() {
@@ -559,8 +809,16 @@ function showAuth() {
 function showApp(user) {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
+  document.getElementById('bottom-nav').style.display = 'flex';
   loadStats(user.uid);
 }
+
+window.showPage = (page) => {
+  document.getElementById('app').style.display = page === 'home' ? 'block' : 'none';
+  document.getElementById('why-page').style.display = page === 'why' ? 'block' : 'none';
+  document.getElementById('nav-home').classList.toggle('active', page === 'home');
+  document.getElementById('nav-why').classList.toggle('active', page === 'why');
+};
 
 // ── Tab switching ──
 window.switchTab = (tab) => {
@@ -699,7 +957,67 @@ async function loadStats(uid) {
   const snap = await getDocs(q);
   const events = snap.docs.map(d => d.data()).sort((a,b) => a.timestamp.seconds - b.timestamp.seconds);
 
-  // Build weekly buckets (last 6 weeks)
+  // ── Day streak calculation ──
+  // A "clean day" = a day where there are NO gave_in events
+  // Streak = consecutive clean days going back from today
+  const dayMap = {}; // "YYYY-MM-DD" -> { resisted, gave_in }
+  events.forEach(e => {
+    const d = e.timestamp.toDate();
+    const key = d.toISOString().slice(0,10);
+    if (!dayMap[key]) dayMap[key] = { resisted: 0, gave_in: 0 };
+    if (e.type === 'resisted') dayMap[key].resisted++;
+    else if (e.type === 'gave_in') dayMap[key].gave_in++;
+  });
+
+  // Count current streak (days with no gave_in, going back from today)
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().slice(0,10);
+    const day = dayMap[key];
+    if (!day) {
+      // No activity — if it's today, skip (they haven't had a chance yet)
+      if (i === 0) continue;
+      // Otherwise streak is broken
+      break;
+    }
+    if (day.gave_in > 0) break; // gave in this day = streak broken
+    if (day.resisted > 0) streak++; // clean day with at least one resist
+  }
+
+  // Best streak ever
+  let bestStreak = 0, curStreak = 0;
+  const allDays = Object.keys(dayMap).sort();
+  allDays.forEach(key => {
+    const day = dayMap[key];
+    if (day.gave_in === 0 && day.resisted > 0) {
+      curStreak++;
+      bestStreak = Math.max(bestStreak, curStreak);
+    } else {
+      curStreak = 0;
+    }
+  });
+
+  document.getElementById('day-streak').textContent = streak;
+  document.getElementById('best-streak').textContent = bestStreak;
+
+  // Update banner message
+  const label = document.querySelector('.streak-days-label');
+  if (streak === 0) {
+    label.textContent = 'Start your streak today';
+    document.querySelector('.streak-fire').textContent = '💪';
+  } else if (streak === 1) {
+    label.textContent = 'day clean — great start!';
+  } else if (streak >= 7) {
+    label.textContent = `days clean — you're on fire!`;
+    document.querySelector('.streak-fire').textContent = '🔥';
+  } else {
+    label.textContent = 'days clean — keep going!';
+  }
+
+  // ── Weekly buckets ──
   const now = new Date();
   const weeks = [];
   for (let w = 5; w >= 0; w--) {
@@ -722,16 +1040,10 @@ async function loadStats(uid) {
     }
   });
 
-  // Current week (last bucket)
   const cur = weeks[weeks.length - 1];
   document.getElementById('total-resisted').textContent = cur.resisted;
   document.getElementById('total-gave-in').textContent = cur.gave_in;
 
-  // Best week
-  const best = Math.max(...weeks.map(w => w.resisted));
-  document.getElementById('best-week').textContent = best;
-
-  // Draw bars
   renderBars(weeks);
 }
 
