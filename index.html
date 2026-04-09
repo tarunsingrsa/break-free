@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BreakFree</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,700;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0f0d;
+    --surface: #111a15;
+    --surface2: #162019;
+    --border: #1e2e22;
+    --accent: #4ade80;
+    --accent-dim: #22c55e33;
+    --accent-glow: #4ade8044;
+    --text: #e8f0ea;
+    --text-dim: #7a9a80;
+    --red: #f87171;
+    --red-dim: #f8717122;
+    --danger: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+  }
+
+  /* ── background noise ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
+
+  /* ── Auth screen ── */
+  #auth-screen {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 100; background: var(--bg);
+    padding: 2rem;
+  }
+  .brand {
+    font-family: 'Fraunces', serif;
+    font-size: 3.5rem;
+    font-weight: 300;
+    letter-spacing: -1px;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+  }
+  .brand-sub {
+    font-size: 0.8rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 3rem;
+  }
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 380px;
+  }
+  .auth-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 4px;
+  }
+  .auth-tab {
+    flex: 1; padding: 0.5rem;
+    background: none; border: none;
+    color: var(--text-dim); cursor: pointer;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .auth-tab.active {
+    background: var(--surface);
+    color: var(--accent);
+    box-shadow: 0 1px 4px #0005;
+  }
+  .field { margin-bottom: 1rem; }
+  .field label {
+    display: block;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.4rem;
+  }
+  .field input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .btn-primary {
+    width: 100%;
+    padding: 0.85rem;
+    background: var(--accent);
+    color: #0a0f0d;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 0.5rem;
+  }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .auth-error {
+    color: var(--red);
+    font-size: 0.8rem;
+    margin-top: 0.75rem;
+    text-align: center;
+    min-height: 1rem;
+  }
+
+  /* ── Main App ── */
+  #app { display: none; width: 100%; max-width: 480px; padding: 1.5rem 1rem 6rem; position: relative; z-index: 1; }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+  .logo { font-family: 'Fraunces', serif; font-size: 1.6rem; color: var(--accent); font-weight: 300; }
+  #signout-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--text-dim); padding: 0.35rem 0.75rem;
+    border-radius: 6px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.75rem;
+    transition: all 0.2s;
+  }
+  #signout-btn:hover { border-color: var(--text-dim); color: var(--text); }
+
+  /* ── Streak ── */
+  .streak-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .streak-label { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.3rem; }
+  .streak-val { font-family: 'Fraunces', serif; font-size: 2.8rem; color: var(--accent); font-weight: 300; line-height: 1; }
+  .streak-unit { font-size: 0.8rem; color: var(--text-dim); }
+  .streak-divider { width: 1px; height: 60px; background: var(--border); }
+
+  /* ── Hold Button ── */
+  .hold-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem 0;
+  }
+  .hold-instruction {
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+  }
+  .hold-btn-wrap {
+    position: relative;
+    width: 160px; height: 160px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hold-ring {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+  }
+  .hold-ring-progress {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: var(--accent);
+    transition: transform 0.05s linear;
+    transform-origin: center;
+  }
+  svg.progress-ring {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    transform: rotate(-90deg);
+  }
+  svg.progress-ring circle {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-dasharray: 440;
+    stroke-dashoffset: 440;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.05s linear;
+    filter: drop-shadow(0 0 6px var(--accent));
+  }
+  .hold-btn {
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0.3rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    transition: background 0.2s, box-shadow 0.2s;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+  }
+  .hold-btn:active, .hold-btn.holding {
+    background: var(--accent-dim);
+    box-shadow: 0 0 30px var(--accent-glow);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .hold-btn .icon { font-size: 1.8rem; }
+
+  /* ── Strategies Panel ── */
+  #strategies-panel {
+    display: none;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+    animation: fadeUp 0.5s ease forwards;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .strategy-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    animation: fadeUp 0.4s ease forwards;
+    opacity: 0;
+  }
+  .strategy-card:nth-child(1) { animation-delay: 0.05s; }
+  .strategy-card:nth-child(2) { animation-delay: 0.15s; }
+  .strategy-card:nth-child(3) { animation-delay: 0.25s; }
+  .strategy-icon { font-size: 1.5rem; flex-shrink: 0; margin-top: 2px; }
+  .strategy-title { font-size: 0.85rem; font-weight: 500; color: var(--accent); margin-bottom: 0.3rem; }
+  .strategy-body { font-size: 0.82rem; color: var(--text-dim); line-height: 1.55; }
+
+  /* ── Gave In Button ── */
+  .gave-in-section {
+    margin-top: 2.5rem;
+    text-align: center;
+  }
+  .gave-in-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+  }
+  .gave-in-btn {
+    background: var(--red-dim);
+    border: 1px solid #f8717133;
+    color: var(--red);
+    padding: 0.65rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .gave-in-btn:hover { background: #f8717133; border-color: var(--red); }
+
+  /* ── Weekly Trends ── */
+  .section-title {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+  }
+  .trends-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .week-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    height: 100px;
+    margin-bottom: 0.5rem;
+  }
+  .bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  .bar-inner {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+    transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .bar-wins { background: var(--accent); }
+  .bar-losses { background: var(--red); opacity: 0.7; }
+  .bar-label { font-size: 0.6rem; color: var(--text-dim); }
+  .bar-num { font-size: 0.65rem; color: var(--text-dim); }
+  .trends-legend {
+    display: flex; gap: 1rem; margin-top: 0.5rem;
+    font-size: 0.7rem; color: var(--text-dim);
+  }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 0.65rem 1.2rem;
+    border-radius: 8px; font-size: 0.82rem;
+    opacity: 0; transition: opacity 0.3s;
+    pointer-events: none; z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── Config Banner ── */
+  .config-banner {
+    background: #f8717122;
+    border: 1px solid #f8717144;
+    border-radius: 10px;
+    padding: 1rem;
+    font-size: 0.8rem;
+    color: var(--red);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+    display: none;
+  }
+  .config-banner code {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    word-break: break-all;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════ AUTH SCREEN ══════════ -->
+<div id="auth-screen">
+  <div class="brand">BreakFree</div>
+  <div class="brand-sub">Your urge. Your choice.</div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchTab('register')">Create Account</button>
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="auth-email" placeholder="you@email.com"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="auth-password" placeholder="••••••••"/>
+    </div>
+    <button class="btn-primary" id="auth-btn" onclick="handleAuth()">Sign In</button>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<!-- ══════════ MAIN APP ══════════ -->
+<div id="app">
+  <div class="config-banner" id="config-banner">
+    ⚠️ Firebase not configured. Paste your Firebase config into the script at the bottom of this file.
+    <code>Replace the FIREBASE_CONFIG placeholder.</code>
+  </div>
+
+  <header>
+    <div class="logo">BreakFree</div>
+    <button id="signout-btn" onclick="signOut()">Sign out</button>
+  </header>
+
+  <!-- Streak -->
+  <div class="streak-card">
+    <div>
+      <div class="streak-label">Times resisted</div>
+      <div class="streak-val" id="total-resisted">0</div>
+      <div class="streak-unit">this week</div>
+    </div>
+    <div class="streak-divider"></div>
+    <div>
+      <div class="streak-label">Gave in</div>
+      <div class="streak-val" id="total-gave-in" style="color:var(--red)">0</div>
+      <div class="streak-unit">this week</div>
+    </div>
+    <div class="streak-divider"></div>
+    <div>
+      <div class="streak-label">Best week</div>
+      <div class="streak-val" id="best-week">0</div>
+      <div class="streak-unit">resisted</div>
+    </div>
+  </div>
+
+  <!-- Hold Button -->
+  <div class="hold-section">
+    <div class="hold-instruction">I'm feeling the urge — hold to get help</div>
+    <div class="hold-btn-wrap">
+      <svg class="progress-ring" viewBox="0 0 160 160">
+        <circle cx="80" cy="80" r="70" id="progress-circle"/>
+      </svg>
+      <button class="hold-btn" id="hold-btn">
+        <span class="icon">🧠</span>
+        <span>Hold 3s</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Strategies -->
+  <div id="strategies-panel">
+    <div class="strategy-card" id="s1"></div>
+    <div class="strategy-card" id="s2"></div>
+    <div class="strategy-card" id="s3"></div>
+  </div>
+
+  <!-- Gave In -->
+  <div class="gave-in-section">
+    <div class="gave-in-label">Struggling? Be honest with yourself.</div>
+    <button class="gave-in-btn" onclick="logGaveIn()">I gave into the urge</button>
+  </div>
+
+  <!-- Weekly Trends -->
+  <div style="margin-top:2.5rem">
+    <div class="section-title">Week-over-week trends</div>
+    <div class="trends-card">
+      <div class="week-bars" id="week-bars"></div>
+      <div class="trends-legend">
+        <span><span class="legend-dot" style="background:var(--accent)"></span>Resisted</span>
+        <span><span class="legend-dot" style="background:var(--red)"></span>Gave in</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══════════ SCRIPTS ══════════ -->
+<script type="module">
+// ─────────────────────────────────────────────
+// 🔧 PASTE YOUR FIREBASE CONFIG HERE
+// ─────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBCmiZyryATW2r--CUJ39xWaJvp4JXwRqo",
+  authDomain: "break-free-a2fc1.firebaseapp.com",
+  projectId: "break-free-a2fc1",
+  storageBucket: "break-free-a2fc1.firebasestorage.app",
+  messagingSenderId: "711363539609",
+  appId: "1:711363539609:web:5df715c4731041ae8c7e08"
+};
+// ─────────────────────────────────────────────
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword,
+  signInWithEmailAndPassword, signOut as fbSignOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, doc, collection,
+  addDoc, getDocs, query, where, orderBy,
+  Timestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// Check if config is real
+const configured = FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY";
+let app, auth, db;
+
+if (configured) {
+  app  = initializeApp(FIREBASE_CONFIG);
+  auth = getAuth(app);
+  db   = getFirestore(app);
+} else {
+  document.getElementById('config-banner').style.display = 'block';
+}
+
+// ── Coping strategies pool ──
+const STRATEGIES = [
+  { icon: "🌬️", title: "Box Breathing", body: "Inhale for 4 counts, hold for 4, exhale for 4, hold for 4. Repeat 4 times. This activates your parasympathetic nervous system and reduces cortisol within minutes." },
+  { icon: "🏃", title: "5-Minute Burst Exercise", body: "Do 20 jumping jacks, 10 push-ups, and 10 squats right now. Physical movement floods your brain with dopamine naturally and breaks the urge cycle." },
+  { icon: "🚿", title: "Cold Water Reset", body: "Splash cold water on your face or take a 60-second cold shower. The mammalian dive reflex immediately lowers heart rate and redirects focus." },
+  { icon: "✍️", title: "Name the Feeling", body: "Write down exactly what you're feeling right now — boredom, loneliness, stress? Studies show labeling emotions reduces their intensity by up to 50%." },
+  { icon: "🎧", title: "Music & Movement", body: "Put on an upbeat song and move your body. Music activates the same reward pathways as the addictive behavior, giving you a healthy dopamine hit." },
+  { icon: "📞", title: "Reach Out to Someone", body: "Text or call a friend right now — even just to say hi. Social connection is the single most powerful circuit-breaker for addictive urges." },
+  { icon: "🧊", title: "Hold Ice Cubes", body: "Grip an ice cube in each hand for 30–60 seconds. The intense sensation grounds you in your body and disrupts the mental pattern driving the urge." },
+  { icon: "🚶", title: "Change Your Location", body: "Stand up and walk to a different room or go outside. Your environment is a powerful trigger — physically leaving the space breaks the association." },
+  { icon: "⏱️", title: "Surf the Urge", body: "Set a 10-minute timer and just observe the urge without acting on it. Research shows urges peak and pass within 15–20 minutes if you don't feed them." },
+  { icon: "🙏", title: "Body Scan Meditation", body: "Close your eyes. Slowly move attention from your toes to your head, relaxing each part. This moves your brain from reactive mode to reflective mode." },
+  { icon: "📖", title: "Read Your 'Why'", body: "Open a note you've written about why you want to change. Reconnecting with your deeper motivation strengthens the prefrontal cortex's control over impulses." },
+  { icon: "💧", title: "Drink Water Slowly", body: "Pour a full glass of water and drink it slowly, focusing on each sip. This mindful act takes 2 minutes and interrupts the automatic urge pattern." },
+];
+
+function getRandomStrategies() {
+  const shuffled = [...STRATEGIES].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, 3);
+}
+
+// ── Auth state ──
+if (configured) {
+  onAuthStateChanged(auth, (user) => {
+    if (user) showApp(user);
+    else showAuth();
+  });
+} else {
+  showAuth();
+}
+
+function showAuth() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+function showApp(user) {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadStats(user.uid);
+}
+
+// ── Tab switching ──
+window.switchTab = (tab) => {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0) === (tab==='login')));
+  document.getElementById('auth-btn').textContent = tab === 'login' ? 'Sign In' : 'Create Account';
+  document.getElementById('auth-error').textContent = '';
+};
+
+window.handleAuth = async () => {
+  if (!configured) { showToast("Add your Firebase config first"); return; }
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-password').value;
+  const isLogin = document.getElementById('auth-btn').textContent === 'Sign In';
+  document.getElementById('auth-error').textContent = '';
+  try {
+    if (isLogin) await signInWithEmailAndPassword(auth, email, pass);
+    else         await createUserWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    document.getElementById('auth-error').textContent = friendlyError(e.code);
+  }
+};
+
+window.signOut = async () => {
+  await fbSignOut(auth);
+};
+
+function friendlyError(code) {
+  const map = {
+    'auth/invalid-email': 'Invalid email address.',
+    'auth/user-not-found': 'No account found with that email.',
+    'auth/wrong-password': 'Incorrect password.',
+    'auth/email-already-in-use': 'An account already exists with that email.',
+    'auth/weak-password': 'Password must be at least 6 characters.',
+  };
+  return map[code] || 'Something went wrong. Try again.';
+}
+
+// ── Hold Button ──
+const holdBtn    = document.getElementById('hold-btn');
+const circle     = document.getElementById('progress-circle');
+const HOLD_MS    = 3000;
+const CIRCUMFERENCE = 2 * Math.PI * 70; // r=70
+circle.style.strokeDasharray = CIRCUMFERENCE;
+circle.style.strokeDashoffset = CIRCUMFERENCE;
+
+let holdTimer = null, holdStart = null, holding = false;
+
+function startHold(e) {
+  e.preventDefault();
+  holding = true;
+  holdStart = Date.now();
+  holdBtn.classList.add('holding');
+  holdTimer = setInterval(() => {
+    const elapsed = Date.now() - holdStart;
+    const progress = Math.min(elapsed / HOLD_MS, 1);
+    const offset = CIRCUMFERENCE * (1 - progress);
+    circle.style.strokeDashoffset = offset;
+    if (progress >= 1) {
+      clearInterval(holdTimer);
+      onHoldComplete();
+    }
+  }, 30);
+}
+
+function endHold(e) {
+  if (!holding) return;
+  holding = false;
+  holdBtn.classList.remove('holding');
+  clearInterval(holdTimer);
+  const elapsed = Date.now() - holdStart;
+  if (elapsed < HOLD_MS) {
+    // reset ring
+    circle.style.strokeDashoffset = CIRCUMFERENCE;
+  }
+}
+
+holdBtn.addEventListener('mousedown', startHold);
+holdBtn.addEventListener('touchstart', startHold, { passive: false });
+document.addEventListener('mouseup', endHold);
+document.addEventListener('touchend', endHold);
+
+async function onHoldComplete() {
+  circle.style.strokeDashoffset = CIRCUMFERENCE;
+  holdBtn.classList.remove('holding');
+  // Show strategies
+  const panel = document.getElementById('strategies-panel');
+  panel.style.display = 'flex';
+  const strategies = getRandomStrategies();
+  ['s1','s2','s3'].forEach((id, i) => {
+    const s = strategies[i];
+    document.getElementById(id).innerHTML = `
+      <div class="strategy-icon">${s.icon}</div>
+      <div>
+        <div class="strategy-title">${s.title}</div>
+        <div class="strategy-body">${s.body}</div>
+      </div>`;
+    // reset animation
+    const el = document.getElementById(id);
+    el.style.animation = 'none';
+    el.offsetHeight; // reflow
+    el.style.animation = '';
+  });
+  // Log to Firebase
+  if (configured && auth.currentUser) {
+    await logEvent(auth.currentUser.uid, 'resisted');
+    loadStats(auth.currentUser.uid);
+  }
+  showToast("You made it. Keep going. 💚");
+}
+
+// ── Gave In ──
+window.logGaveIn = async () => {
+  if (configured && auth.currentUser) {
+    await logEvent(auth.currentUser.uid, 'gave_in');
+    loadStats(auth.currentUser.uid);
+  }
+  showToast("Logged. Tomorrow you're stronger.");
+};
+
+// ── Firestore logging ──
+async function logEvent(uid, type) {
+  await addDoc(collection(db, 'events'), {
+    uid,
+    type, // 'resisted' | 'gave_in'
+    timestamp: Timestamp.now()
+  });
+}
+
+// ── Load stats & trends ──
+async function loadStats(uid) {
+  if (!configured) return;
+  const q = query(collection(db, 'events'), where('uid','==',uid), orderBy('timestamp','asc'));
+  const snap = await getDocs(q);
+  const events = snap.docs.map(d => d.data());
+
+  // Build weekly buckets (last 6 weeks)
+  const now = new Date();
+  const weeks = [];
+  for (let w = 5; w >= 0; w--) {
+    const start = new Date(now);
+    start.setDate(now.getDate() - now.getDay() - w * 7);
+    start.setHours(0,0,0,0);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 7);
+    weeks.push({ start, end, resisted: 0, gave_in: 0, label: weekLabel(start) });
+  }
+
+  events.forEach(e => {
+    const d = e.timestamp.toDate();
+    for (const w of weeks) {
+      if (d >= w.start && d < w.end) {
+        if (e.type === 'resisted') w.resisted++;
+        else if (e.type === 'gave_in') w.gave_in++;
+        break;
+      }
+    }
+  });
+
+  // Current week (last bucket)
+  const cur = weeks[weeks.length - 1];
+  document.getElementById('total-resisted').textContent = cur.resisted;
+  document.getElementById('total-gave-in').textContent = cur.gave_in;
+
+  // Best week
+  const best = Math.max(...weeks.map(w => w.resisted));
+  document.getElementById('best-week').textContent = best;
+
+  // Draw bars
+  renderBars(weeks);
+}
+
+function weekLabel(date) {
+  return date.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+
+function renderBars(weeks) {
+  const container = document.getElementById('week-bars');
+  const maxVal = Math.max(...weeks.map(w => w.resisted + w.gave_in), 1);
+  container.innerHTML = weeks.map(w => {
+    const winH  = Math.round((w.resisted / maxVal) * 90);
+    const lossH = Math.round((w.gave_in  / maxVal) * 90);
+    return `<div class="bar-wrap">
+      <div class="bar-num">${w.resisted > 0 ? w.resisted : ''}</div>
+      <div style="display:flex;flex-direction:column;justify-content:flex-end;height:80px;gap:2px">
+        <div class="bar-inner bar-wins" style="height:${winH}px"></div>
+        ${w.gave_in > 0 ? `<div class="bar-inner bar-losses" style="height:${lossH}px"></div>` : ''}
+      </div>
+      <div class="bar-label">${w.label}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
